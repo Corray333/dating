@@ -1,0 +1,213 @@
+definitions:
+  transport.GetUserResponse:
+    properties:
+      user:
+        $ref: '#/definitions/types.User'
+    type: object
+  transport.LogInResponse:
+    properties:
+      authorization:
+        type: string
+      refresh:
+        type: string
+      user:
+        $ref: '#/definitions/types.User'
+    type: object
+  transport.RefreshAccessTokenResponse:
+    properties:
+      authorization:
+        type: string
+      refresh:
+        type: string
+    type: object
+  types.User:
+    properties:
+      avatar:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_submitted:
+        type: boolean
+      name:
+        type: string
+      orientation_id:
+        type: integer
+      password:
+        type: string
+      patronymic:
+        type: string
+      referal:
+        type: string
+      sex:
+        type: string
+      surname:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's details.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval
+          schema:
+            $ref: '#/definitions/transport.GetUserResponse'
+        "500":
+          description: Internal Server Error. Failed to get user or encode response.
+          schema:
+            type: string
+      summary: Get user details
+      tags:
+      - users
+    post:
+      consumes:
+      - multipart/form-data
+      description: Update a user's username and optionally their avatar.
+      parameters:
+      - description: User credentials
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: New username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: New avatar image
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully.
+          schema:
+            type: string
+        "400":
+          description: Bad Request. Failed to extract credentials or read file.
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error. Failed to get user, create file, write
+            file, or update user.
+          schema:
+            type: string
+      summary: Update user details
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in a user and return an access token, a refresh token, and
+        user details.
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/transport.LogInResponse'
+        "400":
+          description: Bad Request. Failed to read or unmarshal request body.
+          schema:
+            type: string
+        "403":
+          description: Forbidden. Wrong password or email.
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error. Failed to create token or encode response.
+          schema:
+            type: string
+      summary: User login
+      tags:
+      - users
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh an access token and return a new access token and a new
+        refresh token.
+      parameters:
+      - description: Refresh token
+        in: header
+        name: Refresh
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful refresh
+          schema:
+            $ref: '#/definitions/transport.RefreshAccessTokenResponse'
+        "500":
+          description: Internal Server Error. Failed to refresh token or encode response.
+          schema:
+            type: string
+      summary: Refresh access token
+      tags:
+      - tokens
+  /users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Sign up a new user and return an access token, a refresh token,
+        and user details.
+      parameters:
+      - description: User details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.LogInResponse'
+        "400":
+          description: Bad Request. Failed to read or unmarshal request body.
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error. Failed to insert user, create token,
+            or encode response.
+          schema:
+            type: string
+      summary: User signup
+      tags:
+      - users
+swagger: "2.0"
