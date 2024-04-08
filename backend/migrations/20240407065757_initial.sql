@@ -22,14 +22,26 @@ CREATE TABLE IF NOT EXISTS public.users
     bio text COLLATE pg_catalog."default",
     sex integer NOT NULL DEFAULT 0,
     referal text COLLATE pg_catalog."default",
-    orientation_id integer NOT NULL DEFAULT 1,
+    orientation_id integer NOT NULL DEFAULT 0,
     is_submitted boolean NOT NULL DEFAULT false,
+    search integer NOT NULL DEFAULT 0,
     CONSTRAINT users_pkey PRIMARY KEY (user_id),
     CONSTRAINT users_orientation_id_fkey FOREIGN KEY (orientation_id)
         REFERENCES public.orientations (orientation_id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 );
+
+CREATE TABLE IF NOT EXISTS public.user_id_search
+(
+    user_id biging NOT NULL,
+    search integer NOT NULL DEFAULT 0,
+    CONSTRAINT pk1 PRIMARY KEY (user_id, search),
+    CONSTRAINT fk1 FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
 
 CREATE TABLE IF NOT EXISTS public.interests
 (

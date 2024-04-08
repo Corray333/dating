@@ -1,5 +1,28 @@
 package types
 
+const (
+	SexMale = iota
+	SexFemale
+	SexNonBinary
+)
+
+const (
+	OrientationGetero = iota
+	OrientationHomo
+	OrientationBisexual
+	OrientationAsexual
+	OrientationHelicopter
+	OrientationAnimal
+)
+
+const (
+	SearchAnybody = iota
+	SearchPair
+	SearchFriend
+	SearchInCity
+	SearchSexPartner
+)
+
 type User struct {
 	ID            int    `json:"id,omitempty" db:"user_id"`
 	Username      string `json:"username" db:"username"`

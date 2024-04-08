@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Corray333/dating/internal/domains/user/storage"
 	"github.com/Corray333/dating/internal/domains/user/types"
 	"github.com/Corray333/dating/pkg/server/auth"
 	"github.com/go-chi/chi/v5"
@@ -38,10 +37,9 @@ type Storage interface {
 //	@Failure		400		{string}	string	"Bad Request. Failed to read or unmarshal request body."
 //	@Failure		500		{string}	string	"Internal Server Error. Failed to insert user, create token, or encode response."
 //	@Router			/users/signup [post]
-func SignUp(store *storage.Storage) http.HandlerFunc {
+func SignUp(store Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := types.User{}
-		user.Avatar = "http://localhost:3001/images/avatars/default_avatar.png"
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -103,7 +101,7 @@ type LogInResponse struct {
 //	@Failure		403		{string}	string			"Forbidden. Wrong password or email."
 //	@Failure		500		{string}	string			"Internal Server Error. Failed to create token or encode response."
 //	@Router			/users/login [post]
-func LogIn(store *storage.Storage) http.HandlerFunc {
+func LogIn(store Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := types.User{}
 		body, err := io.ReadAll(r.Body)

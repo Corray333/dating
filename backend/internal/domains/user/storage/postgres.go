@@ -3,43 +3,26 @@ package storage
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/Corray333/dating/internal/domains/user/types"
+	"github.com/Corray333/dating/internal/storage"
 	"github.com/Corray333/dating/pkg/server/auth"
-	"github.com/go-redis/redis/v8"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 var ctx = context.Background()
 
-type Storage struct {
-	db    *sqlx.DB
-	redis *redis.Client
-}
-
-// New creates a new storage and tables
-func NewStorage(db *sqlx.DB) *Storage {
-	return &Storage{
-		db: db,
-		redis: redis.NewClient(&redis.Options{
-			Addr:     os.Getenv("REDIS_ADDR"),
-			Password: "",
-			DB:       0,
-		}),
-	}
-}
+type UserStorage storage.Storage
 
 // InsertUser inserts a new user into the database and returns the id
-func (s *Storage) InsertUser(user types.User, agent string) (int, string, error) {
+func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, error) {
 	passHash, err := auth.Hash(user.Password)
 	if err != nil {
 		return -1, "", err
 	}
 	user.Password = passHash
 
-	rows := s.db.QueryRow(`
+	rows := s.DB.QueryRow(`
 		INSERT INTO users (username, email, password, name, surname, patronymic, sex, referal, orientation_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING user_id;
 	`, user.Username, user.Email, user.Password, user.Name, user.Surname, user.Patronymic, user.Sex, user.Referal, user.OrientationID)
 
@@ -52,7 +35,7 @@ func (s *Storage) InsertUser(user types.User, agent string) (int, string, error)
 		return -1, "", err
 	}
 
-	// _, err = s.db.Queryx(`
+	// _, err = s.DB.Queryx(`
 	// 	INSERT INTO user_token (user_id, token) VALUES ($1, $2);
 	// `, user.ID, refresh)
 	// if err != nil {
@@ -67,10 +50,10 @@ func (s *Storage) InsertUser(user types.User, agent string) (int, string, error)
 }
 
 // LoginUser checks if the user exists and the password is correct
-func (s *Storage) LoginUser(user types.User, agent string) (int, string, error) {
+func (s *UserStorage) LoginUser(user types.User, agent string) (int, string, error) {
 	password := user.Password
 
-	rows := s.db.QueryRow(`
+	rows := s.DB.QueryRow(`
 		SELECT user_id, password FROM users WHERE email = $1;
 	`, user.Email)
 
@@ -95,8 +78,8 @@ func (s *Storage) LoginUser(user types.User, agent string) (int, string, error) 
 }
 
 // CheckAndUpdateRefresh checks if the refresh token is valid and updates it
-func (s *Storage) CheckAndUpdateRefresh(id int, refresh string) (string, error) {
-	rows, err := s.db.Queryx(`
+func (s *UserStorage) CheckAndUpdateRefresh(id int, refresh string) (string, error) {
+	rows, err := s.DB.Queryx(`
 		SELECT token FROM user_token WHERE user_id = $1 AND token = $2;
 	`, id, refresh)
 	if err != nil {
@@ -109,7 +92,7 @@ func (s *Storage) CheckAndUpdateRefresh(id int, refresh string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	_, err = s.db.Queryx(`
+	_, err = s.DB.Queryx(`
 		UPDATE user_token SET token = $1 WHERE user_id = $2;
 	`, newRefresh, id)
 	if err != nil {
@@ -118,9 +101,9 @@ func (s *Storage) CheckAndUpdateRefresh(id int, refresh string) (string, error) 
 	return newRefresh, nil
 }
 
-func (s *Storage) SelectUser(id string) (types.User, error) {
+func (s *UserStorage) SelectUser(id string) (types.User, error) {
 	var user types.User
-	rows, err := s.db.Queryx(`
+	rows, err := s.DB.Queryx(`
 		SELECT * FROM users WHERE user_id = $1;
 	`, id)
 	if err != nil {
@@ -136,11 +119,11 @@ func (s *Storage) SelectUser(id string) (types.User, error) {
 	return user, nil
 }
 
-func (s *Storage) UpdateUser(user types.User) error {
+func (s *UserStorage) UpdateUser(user types.User) error {
 	fmt.Println()
 	fmt.Println(user)
 	fmt.Println()
-	_, err := s.db.Queryx(`
+	_, err := s.DB.Queryx(`
 		UPDATE users SET username = $1, email = $2, avatar = $3 WHERE user_id = $4;
 	`, user.Username, user.Email, user.Avatar, user.ID)
 	return err

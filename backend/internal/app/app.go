@@ -12,22 +12,21 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type App struct {
-	db     *sqlx.DB
+	db     *storage.Storage
 	server *http.Server
 }
 
-//	@title			Dating API
-//	@version		1.0
-//	@description	This is a dating API
-//	@host			localhost:3001
+// @title			Dating API
+// @version		1.0
+// @description	This is a dating API
+// @host			localhost:3001
 func NewApp() *App {
-	db, err := storage.Connect()
+	store, err := storage.Connect()
 	if err != nil {
 		slog.Error("Failed to connect to the database: " + err.Error())
 		panic(err)
@@ -47,7 +46,7 @@ func NewApp() *App {
 		router.Use(logger.New(slog.Default()))
 	}
 
-	if err := user.Init(db, router); err != nil {
+	if err := user.Init(store, router); err != nil {
 		slog.Error(err.Error())
 		panic(err)
 
@@ -57,10 +56,8 @@ func NewApp() *App {
 		httpSwagger.URL("http://localhost:3001/swagger/doc.json"), //The url pointing to API definition
 	))
 
-	router.Get("/test", testFunc)
-
 	return &App{
-		db: db,
+		db: store,
 		server: &http.Server{
 			Addr:    os.Getenv("APP_IP") + ":" + os.Getenv("APP_PORT"),
 			Handler: router,
@@ -74,13 +71,4 @@ func (app *App) Run() {
 		slog.Error("Server failed to start: " + err.Error())
 		panic(err)
 	}
-}
-
-//	@Summary		Test function
-//	@Description	Test function
-//	@ID				test
-//	@Accept			json
-//	@Produce		json
-func testFunc(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello world"))
 }

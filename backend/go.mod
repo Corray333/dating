@@ -13,7 +13,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.18.2
 	github.com/swaggo/http-swagger v1.3.4
-	github.com/swaggo/http-swagger/example/go-chi v0.0.0-20230830153024-537f045bded0
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/crypto v0.22.0
 )

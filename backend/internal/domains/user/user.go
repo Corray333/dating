@@ -1,23 +1,26 @@
 package user
 
 import (
-	"github.com/Corray333/dating/internal/domains/user/storage"
+	user_storage "github.com/Corray333/dating/internal/domains/user/storage"
 	"github.com/Corray333/dating/internal/domains/user/transport"
 	"github.com/Corray333/dating/internal/domains/user/types"
+	"github.com/Corray333/dating/internal/storage"
 	"github.com/Corray333/dating/pkg/server/auth"
 	"github.com/go-chi/chi/v5"
-	"github.com/jmoiron/sqlx"
 )
 
 type Storage interface {
-	InsertUser(user types.User) (int, string, error)
-	LoginUser(user types.User) (int, string, error)
+	InsertUser(user types.User, agent string) (int, string, error)
+	LoginUser(user types.User, agent string) (int, string, error)
 	CheckAndUpdateRefresh(id int, refresh string) (string, error)
-	SelectUser(id int) (types.User, error)
+	SelectUser(id string) (types.User, error)
+	UpdateUser(user types.User) error
 }
 
-func Init(db *sqlx.DB, router *chi.Mux) error {
-	store := storage.NewStorage(db)
+func Init(storage *storage.Storage, router *chi.Mux) error {
+	// TODO: fix this
+	temp := user_storage.UserStorage(*storage)
+	store := &temp
 
 	router.Post("/users/login", transport.LogIn(store))
 	router.Post("/users/signup", transport.SignUp(store))
