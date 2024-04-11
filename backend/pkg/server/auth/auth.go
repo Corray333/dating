@@ -39,6 +39,12 @@ func NewMiddleware() func(next http.Handler) http.Handler {
 	}
 }
 
+func Parse(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, func(newToken *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+}
+
 // Hash hashes the password using bcrypt package
 func Hash(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)

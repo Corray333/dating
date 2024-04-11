@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -19,6 +20,7 @@ type Storage interface {
 	CheckAndUpdateRefresh(id int, refresh string) (string, error)
 	SelectUser(id string) (types.User, error)
 	UpdateUser(user types.User) error
+	RefreshToken(id int, agent string, refresh string) (string, string, error)
 }
 
 // SignUp is an HTTP handler function that signs up a new user.
@@ -164,7 +166,29 @@ type RefreshAccessTokenResponse struct {
 func RefreshAccessToken(store Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		refresh := r.Header.Get("Refresh")
-		access, refresh, err := auth.RefreshAccessToken(store, refresh)
+
+		token, err := auth.Parse(refresh)
+
+		if err != nil {
+			slog.Error("Failed to parse refresh token: " + err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if !token.Valid {
+			slog.Error("Invalid token")
+			http.Error(w, "Token is invalid.", http.StatusInternalServerError)
+			return
+		}
+
+		creds, err := auth.ExtractCredentials(refresh)
+		if err != nil {
+			slog.Error("Failed to parse refresh token: " + err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		access, refresh, err := store.RefreshToken(creds.ID, r.UserAgent(), refresh)
 		if err != nil {
 			http.Error(w, "Failed to refresh token", http.StatusInternalServerError)
 			slog.Error("Failed to refresh token: " + err.Error())
@@ -243,12 +267,18 @@ func UpdateUser(store Storage) http.HandlerFunc {
 			slog.Error("Failed to extract credentials: " + err.Error())
 			return
 		}
-		user, err := store.SelectUser(strconv.Itoa(int(creds.ID)))
-		if err != nil {
-			http.Error(w, "Failed to get user", http.StatusInternalServerError)
-			slog.Error("Failed to get user: " + err.Error())
+		bodyUser := r.FormValue("user")
+		var user types.User
+		if json.Unmarshal([]byte(bodyUser), &user); err != nil {
+			http.Error(w, "Failed to get unmarshall", http.StatusInternalServerError)
+			slog.Error("Failed to unmarshall user: " + err.Error())
 			return
 		}
+		user.ID = creds.ID
+		fmt.Println()
+		fmt.Println(bodyUser)
+		fmt.Println(user)
+		fmt.Println()
 		file, _, err := r.FormFile("avatar")
 		if err != nil && err.Error() != "http: no such file" {
 			http.Error(w, "Failed to read file", http.StatusBadRequest)
@@ -256,7 +286,8 @@ func UpdateUser(store Storage) http.HandlerFunc {
 			return
 		}
 		if file != nil {
-			newFile, err := os.Create("../files/images/avatars/avatar" + strconv.Itoa(int(user.ID)) + ".png")
+			// TODO: replace with a file server
+			newFile, err := os.Create("../../files_server/files/images/avatars/avatar" + strconv.Itoa(int(creds.ID)) + ".png")
 			if err != nil {
 				http.Error(w, "Failed to create file", http.StatusInternalServerError)
 				slog.Error("Failed to create file: " + err.Error())
@@ -273,9 +304,8 @@ func UpdateUser(store Storage) http.HandlerFunc {
 				slog.Error("Failed to write file: " + err.Error())
 				return
 			}
-			user.Avatar = "http://localhost:3001/images/avatars/avatar" + strconv.Itoa(int(user.ID)) + ".png"
+			user.Avatar = "http://localhost:3002/files/images/avatars/avatar" + strconv.Itoa(int(creds.ID)) + ".png"
 		}
-		user.Username = r.FormValue("username")
 		if err := store.UpdateUser(user); err != nil {
 			http.Error(w, "Failed to update user", http.StatusInternalServerError)
 			slog.Error("Failed to update user: " + err.Error())

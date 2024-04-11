@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Montserrat, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dp__input{
+  line-height: 2.25rem !important;
+  border:none !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+.dp__cell_inner, .dp__action_button {
+  --dp-primary-color: #78E490;
+}
+
+.gradient-background {
+  background: linear-gradient(300deg,#cff5da,#e8f0ee,#b3d7f3);
+  background-size: 180% 180%;
+  animation: gradient-animation 5s ease infinite;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 100%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+
+
+*:focus{
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+@layer components {
+  .text-input {
+    @apply p-2 rounded-md text-black w-72 ;
+  }
+  .button {
+    @apply rounded-md bg-gray-700 text-white p-2 w-full flex items-center gap-2
+    duration-300 hover:bg-green-400 hover:text-gray-900 hover:rounded-3xl;
+  }
+  .title{
+    @apply text-2xl font-bold;
+  }
+  .arrow-button{
+    @apply text-3xl text-white p-1 aspect-square flex justify-center items-center 
+    bg-gray-700 rounded-full duration-300 hover:bg-green-400 hover:text-gray-900;
+  }
+  .input_tip{
+    @apply absolute -right-80 w-72 bg-gray-900 p-2 rounded-xl scale-0 duration-300 origin-left;
+  }
+  .button.disabled{
+    @apply opacity-50;
+    pointer-events: none;
+  }
+
+  .arrow{
+    @apply w-20 h-20 rounded-full text-xl border-2 border-dark flex items-center justify-center mb-5 opacity-60
+    hover:opacity-100 duration-500;
+  }
+  .arrow_out_circle{
+    @apply w-full h-full absolute border-dark z-10 border-2 rounded-full box-content;
+  }
+
+  .radio_block{
+    @apply flex gap-2 items-center p-2 rounded-md bg-white cursor-pointer
+    hover:text-primary duration-300;
+  }
+  .radio_block.active{
+    @apply bg-primary hover:text-white;
+  }
+}
+
+
+.wm{
+  max-width: 900px;
+}
+
+.hm-screen{
+  min-height: 100vh;
+}
+
+.arrow_out_circle{
+  animation: circle-pulse 2s infinite ease-in-out 1s;
+}
+
+
+
+@keyframes circle-pulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}

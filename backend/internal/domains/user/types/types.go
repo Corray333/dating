@@ -1,13 +1,15 @@
 package types
 
+import "time"
+
 const (
-	SexMale = iota
+	SexMale = iota + 1
 	SexFemale
 	SexNonBinary
 )
 
 const (
-	OrientationGetero = iota
+	OrientationGetero = iota + 1
 	OrientationHomo
 	OrientationBisexual
 	OrientationAsexual
@@ -16,7 +18,7 @@ const (
 )
 
 const (
-	SearchAnybody = iota
+	SearchAnybody = iota + 1
 	SearchPair
 	SearchFriend
 	SearchInCity
@@ -24,29 +26,23 @@ const (
 )
 
 type User struct {
-	ID            int    `json:"id,omitempty" db:"user_id"`
-	Username      string `json:"username" db:"username"`
-	Email         string `json:"email" db:"email"`
-	Password      string `json:"password,omitempty" db:"password"`
-	Avatar        string `json:"avatar" db:"avatar"`
-	Name          string `json:"name" db:"name"`
-	Surname       string `json:"surname" db:"surname"`
-	Patronymic    string `json:"patronymic" db:"patronymic"`
-	City          string `json:"city" db:"city"`
-	Bio           string `json:"bio" db:"bio"`
-	Sex           string `json:"sex" db:"sex"`
-	Referal       string `json:"referal" db:"referal"`
-	OrientationID int32  `json:"orientation_id" db:"orientation_id"`
-	IsSubmitted   bool   `json:"is_submitted" db:"is_submitted"`
-}
+	ID          int    `json:"id,omitempty" db:"user_id"`
+	Username    string `json:"username" db:"username"`
+	Email       string `json:"email" db:"email"`
+	Password    string `json:"password,omitempty" db:"password"`
+	Avatar      string `json:"avatar" db:"avatar"`
+	Name        string `json:"name" db:"name"`
+	Surname     string `json:"surname" db:"surname"`
+	Patronymic  string `json:"patronymic" db:"patronymic"`
+	Birth       int    `json:"birth" db:"-"`
+	Phone       string `json:"phone" db:"phone"`
+	City        string `json:"city" db:"city"`
+	Bio         string `json:"bio" db:"bio"`
+	Sex         int    `json:"sex" db:"sex"`
+	Referal     string `json:"referal" db:"referal"`
+	Orientation int    `json:"orientation" db:"orientation"`
+	IsSubmitted bool   `json:"is_submitted" db:"is_submitted"`
+	Interests   []int  `json:"interests" db:"-"`
 
-type Orientation struct {
-	ID          int32  `json:"id" db:"orientation_id"`
-	Orientation string `json:"orientation" db:"orientation"`
-}
-
-type Interest struct {
-	ID       int32  `json:"id" db:"interest_id"`
-	Interest string `json:"interest" db:"interest"`
-	Icon     string `json:"icon" db:"icon"`
+	BirthTime time.Time `json:"-" db:"birth"`
 }

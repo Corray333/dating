@@ -1,16 +1,14 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/Corray333/dating/internal/domains/user/types"
 	"github.com/Corray333/dating/internal/storage"
 	"github.com/Corray333/dating/pkg/server/auth"
 	_ "github.com/lib/pq"
+	"golang.org/x/net/context"
 )
-
-var ctx = context.Background()
 
 type UserStorage storage.Storage
 
@@ -22,29 +20,49 @@ func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, er
 	}
 	user.Password = passHash
 
-	rows := s.DB.QueryRow(`
-		INSERT INTO users (username, email, password, name, surname, patronymic, sex, referal, orientation_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING user_id;
-	`, user.Username, user.Email, user.Password, user.Name, user.Surname, user.Patronymic, user.Sex, user.Referal, user.OrientationID)
-
-	if err := rows.Scan(&user.ID); err != nil {
-		return -1, "", err
-	}
-
-	refresh, err := auth.CreateToken(user.ID, auth.RefreshTokenLifeTime)
+	ctx := context.Background()
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return -1, "", err
 	}
 
-	// _, err = s.DB.Queryx(`
-	// 	INSERT INTO user_token (user_id, token) VALUES ($1, $2);
-	// `, user.ID, refresh)
-	// if err != nil {
-	// 	return -1, "", err
-	// }
+	rows := tx.QueryRow(`
+		INSERT INTO users (username, email, password, name, surname, patronymic, sex, referal, orientation, birth) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TO_TIMESTAMP($10)) RETURNING user_id;
+	`, user.Username, user.Email, user.Password, user.Name, user.Surname, user.Patronymic, user.Sex, user.Referal, user.Orientation, user.Birth)
 
-	if err := s.SetRefreshToken(user.ID, agent, refresh); err != nil {
+	if err := rows.Scan(&user.ID); err != nil {
+		tx.Rollback()
 		return -1, "", err
 	}
+
+	if len(user.Interests) != 0 {
+		query := "INSERT INTO user_interest (user_id, interest_id) VALUES "
+		for _, value := range user.Interests {
+			query += fmt.Sprintf("(%d, %d),", user.ID, value)
+		}
+		query = query[:len(query)-1] + ";"
+
+		fmt.Println()
+		fmt.Println(query)
+		fmt.Println()
+		if _, err := tx.Exec(query); err != nil {
+			tx.Rollback()
+			return -1, "", err
+		}
+	}
+
+	refresh, err := auth.CreateToken(user.ID, auth.RefreshTokenLifeTime)
+	if err != nil {
+		tx.Rollback()
+		return -1, "", err
+	}
+
+	if err := s.SetRefreshToken(user.ID, agent, refresh); err != nil {
+		tx.Rollback()
+		return -1, "", err
+	}
+
+	tx.Commit()
 
 	return user.ID, refresh, nil
 }
@@ -115,16 +133,14 @@ func (s *UserStorage) SelectUser(id string) (types.User, error) {
 	if err := rows.StructScan(&user); err != nil {
 		return user, err
 	}
+	user.Birth = int(user.BirthTime.Unix())
 	user.Password = ""
 	return user, nil
 }
 
 func (s *UserStorage) UpdateUser(user types.User) error {
-	fmt.Println()
-	fmt.Println(user)
-	fmt.Println()
 	_, err := s.DB.Queryx(`
-		UPDATE users SET username = $1, email = $2, avatar = $3 WHERE user_id = $4;
-	`, user.Username, user.Email, user.Avatar, user.ID)
+		UPDATE users SET name = $1, surname = $2, patronymic = $3, phone=$4, city = $5, bio = $6, avatar = $7 WHERE user_id = $8;
+	`, user.Name, user.Surname, user.Patronymic, user.Phone, user.City, user.Bio, user.Avatar, user.ID)
 	return err
 }
