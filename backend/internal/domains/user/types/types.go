@@ -3,26 +3,30 @@ package types
 import "time"
 
 const (
-	SexMale = iota + 1
+	SexMale = iota
 	SexFemale
 	SexNonBinary
 )
 
 const (
-	OrientationGetero = iota + 1
+	OrientationGetero = iota
 	OrientationHomo
 	OrientationBisexual
+	OrientationPansexual
 	OrientationAsexual
 	OrientationHelicopter
 	OrientationAnimal
 )
 
 const (
-	SearchAnybody = iota + 1
+	SearchAnybody = 1 << iota
 	SearchPair
 	SearchFriend
-	SearchInCity
 	SearchSexPartner
+	SearchInCity
+	SearchMale
+	SearchFemale
+	SearchNonBinary
 )
 
 type User struct {
@@ -40,9 +44,14 @@ type User struct {
 	Bio         string `json:"bio" db:"bio"`
 	Sex         int    `json:"sex" db:"sex"`
 	Referal     string `json:"referal" db:"referal"`
+	ByReferal   string `json:"by_referal" db:"by_referal"`
+	Search      int    `json:"search" db:"search"`
+	Searching   bool   `json:"searching" db:"searching"`
 	Orientation int    `json:"orientation" db:"orientation"`
-	IsSubmitted bool   `json:"is_submitted" db:"is_submitted"`
 	Interests   []int  `json:"interests" db:"-"`
+
+	EmailVerified bool `json:"email_verified" db:"email_verified"`
+	PhoneVerified bool `json:"phone_verified" db:"phone_verified"`
 
 	BirthTime time.Time `json:"-" db:"birth"`
 }

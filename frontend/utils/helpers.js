@@ -14,12 +14,13 @@ const refreshTokens = async()=>{
                 'Refresh': getCookie('Refresh'),
             }
         })
+        // TODO: replace with domain from config
         document.cookie = `Authorization=${data.authorization};`
         document.cookie = `Refresh=${data.refresh};`
     } catch (error) {
         alert(error)
         clearCookies()
-        console.log(error)
+        location.reload()
     }
 }
 

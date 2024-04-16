@@ -59,7 +59,7 @@
     @apply p-2 rounded-md text-black w-72 ;
   }
   .button {
-    @apply rounded-md bg-gray-700 text-white p-2 w-full flex items-center gap-2
+    @apply rounded-md bg-gray-700 text-white p-2 w-full flex items-center gap-2 justify-center
     duration-300 hover:bg-green-400 hover:text-gray-900 hover:rounded-3xl;
   }
   .title{

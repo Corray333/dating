@@ -69,7 +69,9 @@
                     email: email.value,
                     password: password.value,
                 })
+                // TODO: replace with domain from config
                 document.cookie = `Authorization=${data.authorization};`
+                console.log(document.cookie)
                 document.cookie = `Refresh=${data.refresh};`
                 router.push('/home')
                 location.reload()
@@ -93,7 +95,6 @@
                 document.cookie = `Authorization=${data.authorization};`
                 document.cookie = `Refresh=${data.refresh};`
                 router.push('/home')
-                location.reload()
             }
             else console.log("Invalid action")
         } catch (error) {
@@ -271,7 +272,7 @@
 </script>
 
 <template>
-    <section @mousemove="moveSphere" class="w-full gradient-background relative overflow-hidden">
+    <section @mousemove="moveSphere" class="w-full gradient-background absolute top-0 left-0 overflow-hidden">
         <div class="bg_sphere" ref="bgSphere"></div>
         <article id="reg1" class="p-5 w-full h-screen flex justify-center items-center relative">
             <h1 class="font-bold">Hi, give me a 1 minute</h1>

@@ -1,11 +1,25 @@
 <script setup>
 
+import { onBeforeMount } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+onBeforeMount(() => {
+  if (!document.cookie) {
+    router.push('/login')
+  }
+})
+
 </script>
 
 <template>
-  <section>
-    <h1 class="title text-white">Home</h1>
-  </section>
+  <main class="duration-300 p-5 w-full bg-dark h-fit rounded-xl flex flex-col items-center shadow-lg">
+
+    <section>
+      <h1 class="title text-white">Home</h1>
+    </section>
+  </main>
 </template>
 
 

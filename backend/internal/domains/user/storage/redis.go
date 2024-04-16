@@ -14,6 +14,7 @@ func (s *UserStorage) SetRefreshToken(id int, agent string, refresh string) erro
 	if err := s.Redis.Set(ctx, strconv.Itoa(id)+agent, refresh, auth.RefreshTokenLifeTime).Err(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -40,4 +41,20 @@ func (s *UserStorage) RefreshToken(id int, agent string, oldRefresh string) (str
 	}
 	return newAccess, newRefresh, nil
 
+}
+
+func (s *UserStorage) NewVerificationCode(id int) error {
+	if err := s.Redis.Set(ctx, "email_verify:"+strconv.Itoa(id), auth.GenerateVerificationCode(), auth.VerificationCodeLifeTime).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserStorage) CheckVerificationCode(id int, checkCode string) (bool, error) {
+	code, err := s.Redis.Get(ctx, "email_verify:"+strconv.Itoa(id)).Result()
+	if err != nil {
+		return false, err
+	}
+	return code != checkCode, nil
 }

@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"time"
@@ -12,8 +13,9 @@ import (
 )
 
 const (
-	AccessTokenLifeTime  = time.Minute * 15
-	RefreshTokenLifeTime = time.Hour * 24 * 365
+	AccessTokenLifeTime      = time.Minute * 15
+	RefreshTokenLifeTime     = time.Hour * 24 * 365
+	VerificationCodeLifeTime = time.Minute * 10
 )
 
 var secretKey []byte
@@ -28,6 +30,10 @@ func NewMiddleware() func(next http.Handler) http.Handler {
 		slog.Info("auth middleware enabled")
 
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			c, _ := r.Cookie("Authorization")
+			fmt.Println("Cookies:")
+			fmt.Println(c)
+			fmt.Println()
 			if err := VerifyToken(r.Header.Get("Authorization")); err != nil {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				slog.Error("Unauthorized: " + err.Error())
@@ -142,4 +148,14 @@ func RefreshAccessToken(store Storage, refresh string) (string, string, error) {
 	}
 	return newAccess, newRefresh, nil
 
+}
+
+func GenerateVerificationCode() string {
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	length := 6
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = chars[rand.Int()%len(chars)]
+	}
+	return string(result)
 }

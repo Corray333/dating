@@ -21,6 +21,8 @@ type Storage interface {
 	SelectUser(id string) (types.User, error)
 	UpdateUser(user types.User) error
 	RefreshToken(id int, agent string, refresh string) (string, string, error)
+	NewVerificationCode(id int) error
+	CheckVerificationCode(id int, code string) (bool, error)
 }
 
 // SignUp is an HTTP handler function that signs up a new user.
@@ -61,21 +63,67 @@ func SignUp(store Storage) http.HandlerFunc {
 		}
 		user.ID = id
 
-		token, err := auth.CreateToken(user.ID, auth.AccessTokenLifeTime)
+		access, err := auth.CreateToken(user.ID, auth.AccessTokenLifeTime)
 		if err != nil {
 			http.Error(w, "Failed to create token", http.StatusInternalServerError)
 			slog.Error("Failed to create token: " + err.Error())
 			return
 		}
 		user.Password = ""
-		if err := json.NewEncoder(w).Encode(LogInResponse{Authorization: token,
-			Refresh: refresh,
-			User:    user,
+
+		if err := store.NewVerificationCode(user.ID); err != nil {
+			http.Error(w, "Failed to create verification code", http.StatusInternalServerError)
+			slog.Error("Failed to create verification code: " + err.Error())
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(LogInResponse{
+			Authorization: access,
+			Refresh:       refresh,
+			User:          user,
 		}); err != nil {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			slog.Error("Failed to send response: " + err.Error())
 			return
 		}
+	}
+}
+
+type VerifyEmailRequest struct {
+	Code string `json:"code"`
+}
+
+func VerifyEmail(store Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		access := r.Header.Get("Authorization")
+
+		var req VerifyEmailRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Failed to decode request body", http.StatusBadRequest)
+			slog.Error("Failed to decode request body: " + err.Error())
+			return
+		}
+
+		creds, err := auth.ExtractCredentials(access)
+		if err != nil {
+			http.Error(w, "Failed to extract credentials", http.StatusBadRequest)
+			slog.Error("Failed to extract credentials: " + err.Error())
+			return
+		}
+
+		verified, err := store.CheckVerificationCode(creds.ID, req.Code)
+		if err != nil {
+			http.Error(w, "Failed to check verification code", http.StatusInternalServerError)
+			slog.Error("Failed to check verification code: " + err.Error())
+			return
+		}
+		if !verified {
+			http.Error(w, "Invalid verification code", http.StatusBadRequest)
+			// TODO: log with more data
+			return
+		}
+		// TODO: remove code from redis
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

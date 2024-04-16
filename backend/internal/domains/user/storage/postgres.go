@@ -36,15 +36,12 @@ func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, er
 	}
 
 	if len(user.Interests) != 0 {
-		query := "INSERT INTO user_interest (user_id, interest_id) VALUES "
+		query := "INSERT INTO user_interest (user_id, interest) VALUES "
 		for _, value := range user.Interests {
 			query += fmt.Sprintf("(%d, %d),", user.ID, value)
 		}
 		query = query[:len(query)-1] + ";"
 
-		fmt.Println()
-		fmt.Println(query)
-		fmt.Println()
 		if _, err := tx.Exec(query); err != nil {
 			tx.Rollback()
 			return -1, "", err

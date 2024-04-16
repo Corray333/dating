@@ -2,26 +2,35 @@
   import {ref, onMounted} from 'vue'
   import { getCookie, refreshTokens } from '@/utils/helpers';
   
-  const runtimeConfig = useRuntimeConfig()
 
-  const layout = ref('unauthorized')
 
 
 
   onMounted(() => {
     if (getCookie('Refresh')) {
       refreshTokens()
-      layout.value = 'default'
-    } else{
-      layout.value = 'unauthorized'
-    }
+    } 
   })
 </script>
 
 <template>
   <div class="wrapper w-full hm-screen bg-light flex justify-center">
-    <NuxtLayout :name="layout">
+    <NuxtLayout>
       <NuxtPage/>
     </NuxtLayout>
   </div>
 </template>
+
+
+<style>
+
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.3s;
+}
+.page-enter-from,
+.page-leave-to {
+  transform:scale(0);
+}
+
+</style>
