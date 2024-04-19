@@ -1,6 +1,7 @@
 <script setup>
     import {ref, onMounted, onBeforeUnmount} from 'vue'
     import {useRouter} from 'vue-router'
+    import { clearCookies } from '@/utils/helpers'
     import VueDatePicker from '@vuepic/vue-datepicker'
     import '@vuepic/vue-datepicker/dist/main.css'
     import axios from 'axios'
@@ -70,11 +71,10 @@
                     password: password.value,
                 })
                 // TODO: replace with domain from config
+                clearCookies()
                 document.cookie = `Authorization=${data.authorization};`
-                console.log(document.cookie)
                 document.cookie = `Refresh=${data.refresh};`
                 router.push('/home')
-                location.reload()
             } else if (action.value == "Sign up"){
                 let interestsReq = []
                 for (let i = 0; i < interestVariants.value.length; i++) if (interestVariants.value[i].picked) interestsReq.push(i)
@@ -92,9 +92,10 @@
                     birth: Math.floor(birthdate.value.getTime() / 1000),
                     interests: interestsReq
                 })
+                clearCookies()
                 document.cookie = `Authorization=${data.authorization};`
                 document.cookie = `Refresh=${data.refresh};`
-                router.push('/home')
+                router.push('/auth/verify/email')
             }
             else console.log("Invalid action")
         } catch (error) {

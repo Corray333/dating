@@ -6,5 +6,5 @@ INSERT INTO users VALUES (DEFAULT, 'Lububuska', 'maria.masenko2004@gmail.com', '
 
 -- +goose Down
 -- +goose StatementBegin
-DELETE FROM users;
+-- DELETE FROM users;
 -- +goose StatementEnd

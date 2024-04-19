@@ -40,13 +40,13 @@ CREATE TABLE IF NOT EXISTS public.searching_users
 
 CREATE TABLE IF NOT EXISTS public.user_interest
 (
-    user_id bigint NOT NULL,
+    user_id bigint NOT NULL ,
     interest integer NOT NULL,
     CONSTRAINT user_interest_pkey PRIMARY KEY (user_id, interest),
     CONSTRAINT user_interest_user_id_fkey FOREIGN KEY (user_id)
         REFERENCES public.users (user_id) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS public.chats

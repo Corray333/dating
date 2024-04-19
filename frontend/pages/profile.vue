@@ -8,7 +8,7 @@ const router = useRouter()
 
 onBeforeMount(() => {
   if (!document.cookie) {
-    router.push('/login')
+    router.push('/auth/login')
   }
 })
 
@@ -88,7 +88,7 @@ const saveChanges = async () => {
 
 const logout = ()=>{
   clearCookies()
-  router.push('/login')
+  router.push('/auth/login')
 }
 
 </script>

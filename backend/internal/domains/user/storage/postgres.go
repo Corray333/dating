@@ -14,6 +14,23 @@ type UserStorage storage.Storage
 
 // InsertUser inserts a new user into the database and returns the id
 func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, error) {
+	rows, err := s.DB.Queryx("SELECT * FROM users WHERE email = $1;", user.Email)
+	if err != nil {
+		return -1, "", err
+	}
+	var tempUser types.User
+	if rows.Next() {
+		if err := rows.StructScan(&tempUser); err != nil {
+			return -1, "", err
+		}
+		if tempUser.EmailVerified == true {
+			return -1, "", fmt.Errorf("user already exists")
+		} else {
+			if _, err := s.DB.Exec("DELETE FROM users WHERE email = $1", user.Email); err != nil {
+				return -1, "", err
+			}
+		}
+	}
 	passHash, err := auth.Hash(user.Password)
 	if err != nil {
 		return -1, "", err
@@ -26,11 +43,11 @@ func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, er
 		return -1, "", err
 	}
 
-	rows := tx.QueryRow(`
+	uid_row := tx.QueryRow(`
 		INSERT INTO users (username, email, password, name, surname, patronymic, sex, referal, orientation, birth) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TO_TIMESTAMP($10)) RETURNING user_id;
 	`, user.Username, user.Email, user.Password, user.Name, user.Surname, user.Patronymic, user.Sex, user.Referal, user.Orientation, user.Birth)
 
-	if err := rows.Scan(&user.ID); err != nil {
+	if err := uid_row.Scan(&user.ID); err != nil {
 		tx.Rollback()
 		return -1, "", err
 	}
@@ -62,6 +79,11 @@ func (s *UserStorage) InsertUser(user types.User, agent string) (int, string, er
 	tx.Commit()
 
 	return user.ID, refresh, nil
+}
+
+func (s *UserStorage) VerifyUserEmail(id int) error {
+	_, err := s.DB.Exec("UPDATE users SET email_verified = 'true' WHERE user_id = $1;", id)
+	return err
 }
 
 // LoginUser checks if the user exists and the password is correct

@@ -2,6 +2,7 @@
 
 
 export default defineNuxtConfig({
+  ssr: false,
   build: {
     transpile: ['@vuepic/vue-datepicker']
   },

@@ -23,6 +23,7 @@ type Storage interface {
 	RefreshToken(id int, agent string, refresh string) (string, string, error)
 	NewVerificationCode(id int) error
 	CheckVerificationCode(id int, code string) (bool, error)
+	VerifyUserEmail(id int) error
 }
 
 // SignUp is an HTTP handler function that signs up a new user.
@@ -119,10 +120,16 @@ func VerifyEmail(store Storage) http.HandlerFunc {
 		}
 		if !verified {
 			http.Error(w, "Invalid verification code", http.StatusBadRequest)
+			slog.Error("Invalid verification code")
 			// TODO: log with more data
 			return
 		}
 		// TODO: remove code from redis
+		if err := store.VerifyUserEmail(creds.ID); err != nil {
+			http.Error(w, "Couldn't verify email", http.StatusInternalServerError)
+			slog.Error("Error while verifying" + err.Error())
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 	}
 }

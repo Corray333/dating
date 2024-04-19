@@ -25,7 +25,7 @@ func Init(storage *storage.Storage, router *chi.Mux) error {
 	router.Post("/users/login", transport.LogIn(store))
 	router.Post("/users/signup", transport.SignUp(store))
 	router.Get("/users/refresh", transport.RefreshAccessToken(store))
-	router.Get("/users/verify/email", transport.VerifyEmail(store))
+	router.Post("/users/verify/email", transport.VerifyEmail(store))
 	router.With(auth.NewMiddleware()).Put("/users/{id}", transport.UpdateUser(store))
 	router.With(auth.NewMiddleware()).Get("/users/{id}", transport.GetUser(store))
 	return nil

@@ -151,7 +151,7 @@ func RefreshAccessToken(store Storage, refresh string) (string, string, error) {
 }
 
 func GenerateVerificationCode() string {
-	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	length := 6
 	result := make([]byte, length)
 	for i := range result {

@@ -18,9 +18,8 @@ const refreshTokens = async()=>{
         document.cookie = `Authorization=${data.authorization};`
         document.cookie = `Refresh=${data.refresh};`
     } catch (error) {
-        alert(error)
+        console.log(error)
         clearCookies()
-        location.reload()
     }
 }
 
