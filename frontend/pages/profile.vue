@@ -107,7 +107,7 @@ const logout = ()=>{
           <img :src="file ? avatarUrl : user.avatar" alt="Avatar" class="object-cover  w-full h-full">
         </div>
         <div class=" w-full flex flex-col gap-2">
-          <NuxtLink v-if="!user.emailVerified" to="/verify/email" class="button">Verify your email</NuxtLink>
+          <NuxtLink v-if="!user.email_verified" to="/verify/email" class="button">Verify your email</NuxtLink>
           <div class="flex gap-2">
             <div class="w-full">
               <p>Name:</p>

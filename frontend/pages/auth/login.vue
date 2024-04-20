@@ -71,7 +71,6 @@
                     password: password.value,
                 })
                 // TODO: replace with domain from config
-                clearCookies()
                 document.cookie = `Authorization=${data.authorization};`
                 document.cookie = `Refresh=${data.refresh};`
                 router.push('/home')

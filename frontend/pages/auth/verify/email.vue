@@ -23,8 +23,6 @@ const checkCode = async (event, i) => {
   }
   
   try {
-    console.log("Auth: ")
-    console.log(getCookie("Authorization"))
     await axios.post(runtimeConfig.public.backendUrl + "/users/verify/email", {
       code: code.value.join('')
     },{
