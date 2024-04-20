@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.users
     user_id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 0 MINVALUE 0 CACHE 1 ),
     username character varying(20) COLLATE pg_catalog."default" NOT NULL UNIQUE,   
     email text COLLATE pg_catalog."default" NOT NULL UNIQUE,
-    phone text COLLATE pg_catalog."default" UNIQUE,
+    phone text COLLATE pg_catalog."default",
     password text COLLATE pg_catalog."default" NOT NULL,
     avatar text COLLATE pg_catalog."default" NOT NULL DEFAULT 'http://localhost:3000/files/images/avatars/default_avatar.png'::text,
     name text COLLATE pg_catalog."default" NOT NULL,

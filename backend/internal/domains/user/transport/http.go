@@ -21,7 +21,7 @@ type Storage interface {
 	SelectUser(id string) (types.User, error)
 	UpdateUser(user types.User) error
 	RefreshToken(id int, agent string, refresh string) (string, string, error)
-	NewVerificationCode(id int) error
+	NewVerificationCode(id int) (string, error)
 	CheckVerificationCode(id int, code string) (bool, error)
 	VerifyUserEmail(id int) error
 }
@@ -44,6 +44,7 @@ type Storage interface {
 //	@Router			/users/signup [post]
 func SignUp(store Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// use transaction
 		user := types.User{}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -72,9 +73,15 @@ func SignUp(store Storage) http.HandlerFunc {
 		}
 		user.Password = ""
 
-		if err := store.NewVerificationCode(user.ID); err != nil {
+		code, err := store.NewVerificationCode(user.ID)
+		if err != nil {
 			http.Error(w, "Failed to create verification code", http.StatusInternalServerError)
 			slog.Error("Failed to create verification code: " + err.Error())
+			return
+		}
+		if err := SendVerificationCode(user.Email, code, user.Username); err != nil {
+			http.Error(w, "Failed to send verification code", http.StatusInternalServerError)
+			slog.Error("Failed to send verification code: " + err.Error())
 			return
 		}
 
